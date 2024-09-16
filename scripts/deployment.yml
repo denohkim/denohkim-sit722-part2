@@ -1,1 +1,52 @@
 # Write Kubernetes Deployment Script
+#kubernetes api version for deployment
+apiVersion: apps/v1
+
+#defines deployment resource
+kind: Deployment
+
+#metdata for the deployment with name book-catalog-deployment
+metadata:
+  name: book-catalog-deployment
+  #specifies one replica for our application
+spec:
+  replicas: 1
+
+  #defines how the deployment finds pods to manage
+  selector:
+    matchLabels:
+      app: book-catalog
+
+  #template for creating pods,labelled with app: book-catalog
+  template:
+    metadata:
+      labels:
+        app: book-catalog
+  
+  #specifies container details using book-catalog:latest image
+    spec:
+      containers:
+      - name: book-catalog
+        image: book-catalog:latest
+        #tells kubernetes never to pull the image as its available locally
+        imagePullPolicy: Never
+        #exposes port 8000 from the container
+        ports:
+        - containerPort: 8000
+        #sets an enviroment variable for the connection string
+        env:
+        - name: DATABASE_URL
+          value: "postgresql://sit722_dk_user:DM9oELCpv8KvtVGL7HneQKuZmfrpcgkS@dpg-crk23atds78s73eh5vtg-a.oregon-postgres.render.com/sit722_dk"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: book-catalog-service
+spec:
+  selector:
+    app: book-catalog
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
+  type: NodePort
